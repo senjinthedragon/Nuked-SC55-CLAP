@@ -7,6 +7,13 @@
 > original headless version for any other host; the extension is inert
 > unless a host specifically calls it. Everything below is the unmodified
 > upstream README.
+>
+> If this small addition is useful to you and you'd like to support my time
+> maintaining it, you're welcome to do so via
+> [GitHub Sponsors](https://github.com/sponsors/senjinthedragon) or
+> [Ko-fi](https://ko-fi.com/senjinthedragon) - this is a modest fork of
+> someone else's much larger project, so please consider supporting
+> [johnnovak](https://github.com/johnnovak), the original author, as well.
 
 # Nuked SC-55 CLAP audio plug-in
 
