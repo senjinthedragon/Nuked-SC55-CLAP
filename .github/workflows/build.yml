@@ -1,6 +1,13 @@
 name: Build
 
-on: [push, workflow_dispatch]
+on:
+  push:
+  workflow_dispatch:
+    inputs:
+      release_tag:
+        description: "Tag to publish as a GitHub release (leave empty to just build)"
+        required: false
+        type: string
 
 jobs:
   build:
@@ -138,4 +145,67 @@ jobs:
         with:
           name: Nuked-SC55-CLAP-macos-universal
           path: out
+
+  release:
+    name:    Publish release
+    needs:   [build, build-macos-package]
+    if:      github.event_name == 'workflow_dispatch' && inputs.release_tag != ''
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: write
+    steps:
+      - name: Download all build artifacts
+        uses: actions/download-artifact@v6
+        with:
+          path: artifacts
+
+      - name: Dump workspace
+        run: find artifacts
+
+      - name: Package release assets
+        run: |
+          set -xe
+
+          mkdir -p release
+          TAG="${{ inputs.release_tag }}"
+
+          # Matches the upstream johnnovak/Nuked-SC55-CLAP release asset
+          # naming/zip layout exactly (a zip containing just the .clap
+          # plugin at its root), since dosbox-staging's own CI already
+          # knows how to download and unpack that exact format -- it just
+          # needs pointing at this fork's releases instead.
+          declare -A dirs=(
+            ["linux-x86_64"]="Nuked-SC55-CLAP-linux-x64"
+            ["linux-arm64"]="Nuked-SC55-CLAP-linux-arm64"
+            ["windows-x64"]="Nuked-SC55-CLAP-windows-x64"
+            ["windows-arm64"]="Nuked-SC55-CLAP-windows-arm64"
+          )
+
+          for asset_arch in "${!dirs[@]}"; do
+            src="artifacts/${dirs[$asset_arch]}/Nuked-SC55.clap"
+            zip -j "release/Nuked-SC55-CLAP-${asset_arch}-${TAG}.zip" "$src"
+          done
+
+          # macOS CLAP plugins are bundles (directories), so zip the whole
+          # bundle directory (not just its contents) to match upstream.
+          (cd artifacts/Nuked-SC55-CLAP-macos-universal && \
+            zip -r "$GITHUB_WORKSPACE/release/Nuked-SC55-CLAP-macOS-${TAG}.zip" Nuked-SC55.clap)
+
+          ls -la release
+
+      - name: Create GitHub release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ inputs.release_tag }}
+          name: ${{ inputs.release_tag }}
+          files: release/*
+          body: |
+            Automated build of the `lcd-framebuffer` fork branch, adding a
+            custom CLAP extension that exposes the emulated LCD as a raw
+            pixel buffer for use with
+            [senjinthedragon/dosbox-staging](https://github.com/senjinthedragon/dosbox-staging)'s
+            LCD overlay feature.
+
+            The Windows/macOS builds haven't been manually tested by the
+            fork maintainer yet - please report any issues.
 
