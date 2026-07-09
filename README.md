@@ -1,3 +1,13 @@
+> **This is a fork** adding a custom CLAP extension
+> (`net.johnnovak.nuked_sc55_clap.lcd_framebuffer/1`) that exposes the
+> emulated LCD as a raw pixel buffer, so it can be composited on-screen by
+> [senjinthedragon/dosbox-staging](https://github.com/senjinthedragon/dosbox-staging)'s
+> (`lcd-overlays` branch) LCD overlay feature - see that repo's
+> `LCD-OVERLAYS.md` for setup. The plugin still behaves exactly like the
+> original headless version for any other host; the extension is inert
+> unless a host specifically calls it. Everything below is the unmodified
+> upstream README.
+
 # Nuked SC-55 CLAP audio plug-in
 
 The Nuked SC-55 CLAP audio plug-in ([CLAP](https://cleveraudio.org/)) is built
