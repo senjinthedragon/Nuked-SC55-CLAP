@@ -152,6 +152,9 @@ static const clap_plugin_state_t extension_state = {
         return the_plugin->LoadState(stream);
     }};
 
+static const nuked_sc55_lcd_framebuffer_t extension_lcd_framebuffer = {
+    .get_framebuffer = NukedSc55::GetFramebuffer};
+
 //////////////////////////////////////////////////////////////////////////////
 // Plugin classes
 //////////////////////////////////////////////////////////////////////////////
@@ -166,6 +169,9 @@ static const void* get_extension(const clap_plugin* plugin, const char* id)
 
     } else if (strcmp(id, CLAP_EXT_STATE) == 0) {
         return &extension_state;
+
+    } else if (strcmp(id, NUKED_SC55_EXT_LCD_FRAMEBUFFER) == 0) {
+        return &extension_lcd_framebuffer;
 
     } else {
         return nullptr;

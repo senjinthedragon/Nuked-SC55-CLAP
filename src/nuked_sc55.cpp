@@ -167,7 +167,8 @@ bool NukedSc55::Init(const clap_plugin* _plugin_instance)
 
     emu = std::make_unique<Emulator>();
 
-    const EMU_Options opts = {.lcd_backend = nullptr, .nvram_filename = std::filesystem::path{}};
+    lcd_backend = std::make_unique<NoOpLcdBackend>();
+    const EMU_Options opts = {.lcd_backend = lcd_backend.get(), .nvram_filename = std::filesystem::path{}};
     if (!emu->Init(opts)) {
         log("emu->Init failed");
         emu.reset(nullptr);
@@ -208,6 +209,9 @@ bool NukedSc55::Init(const clap_plugin* _plugin_instance)
             emu.reset(nullptr);
             return false;
         }
+        // Starts the (headless) LCD backend so lcd_t::width/height get set
+        // and LCD_Render() can be called via the lcd_framebuffer extension.
+        emu->StartLCD();
         return true;
     }
     log("Init failed, tried all ROM directories");
@@ -224,6 +228,28 @@ void NukedSc55::Shutdown()
         resampler = nullptr;
     }
     log_shutdown();
+}
+
+bool NukedSc55::GetFramebuffer(const clap_plugin_t* plugin, uint32_t* out_width,
+                                uint32_t* out_height, uint32_t* out_row_stride_pixels,
+                                const uint32_t** out_pixels)
+{
+    assert(plugin);
+    auto the_plugin = (NukedSc55*)plugin->plugin_data;
+    if (!the_plugin || !the_plugin->emu) {
+        return false;
+    }
+
+    // Sole caller of LCD_Render() for this instance -- see ext/lcd_framebuffer.h
+    // for the single-threaded-caller requirement.
+    auto& lcd = the_plugin->emu->GetLCD();
+    LCD_Render(lcd);
+
+    *out_width              = static_cast<uint32_t>(lcd.width);
+    *out_height             = static_cast<uint32_t>(lcd.height);
+    *out_row_stride_pixels  = lcd_width_max;
+    *out_pixels             = &lcd.buffer[0][0];
+    return true;
 }
 
 static void receive_sample(void* userdata, const AudioFrame<int32_t>& in)
