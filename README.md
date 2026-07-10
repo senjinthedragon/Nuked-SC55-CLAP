@@ -8,6 +8,19 @@
 > unless a host specifically calls it. Everything below is the unmodified
 > upstream README.
 >
+> This fork's vendored Nuked-SC55 backend (`src/nuked-sc55/`) is also kept in
+> sync with [jcmoyer/Nuked-SC55](https://github.com/jcmoyer/Nuked-SC55)
+> upstream past what this project currently ships, picking up jcmoyer's
+> romset-completeness rework (romsets are now validated as complete named
+> sets instead of matching ROM files individually, so a mismatched mix of
+> files from different hardware revisions is correctly rejected instead of
+> silently accepted) and additional ROM hash tables for SC-55 mk1 v1.00
+> through v2.00, JV-880, CM-300/SCC-1/SCC-1A, SCB-55/RLP-3194, RLP-3237, and
+> SC-155. Note that only the SC-55 mk1/mk2 models below are currently
+> selectable through this plugin's own model list - the extra hash tables
+> improve ROM-detection robustness for those models but don't yet add new
+> playable models to the plugin itself.
+>
 > If this small addition is useful to you and you'd like to support my time
 > maintaining it, you're welcome to do so via
 > [GitHub Sponsors](https://github.com/sponsors/senjinthedragon) or
